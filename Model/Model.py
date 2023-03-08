@@ -83,7 +83,7 @@ class Account(Base):
 
 def __init__():
     inspector = Inspector.from_engine(engine)
-    
+
     if(len(inspector.get_table_names()) == 0):
         CreateDataBase()
 
@@ -96,28 +96,16 @@ def InitializeUndefined():
     session = Session()
     arrayUndefined = []
 
-    if(session.query(Source).get(1) == None): 
-        arrayUndefined.append(Source(Name = 'Undefined'))
-    newPlace = Place(Name = 'Undefined')
-    newCurrency = Currency(Code = 'Undefined', Name = 'Undefined')
-    newTypeOperation = TypeOperation(Name = 'Undefined', Direction = 0)
-    newDescription = Description(Description = 'Undefined')
-    newCategory = Category(Name = 'Undefined')
-    newTypeAccount = TypeAccount(Name = 'Undefined')
-    newPerson = Person(Firstname = 'Undefined', Middlename = 'Undefined', Lastname = 'Undefined', Family = 'Undefined')
-    newBank = Bank(Name = 'Undefined')
-    newAccount = Account(Number = 'Undefined', BankID = 1, TypeAccountID = 1, PersonID = 1)
-    # session.add_all([
-    #     newSource,
-    #     newPlace,
-    #     newCurrency,
-    #     newTypeOperation,
-    #     newDescription,
-    #     newCategory,
-    #     newTypeAccount,
-    #     newPerson,
-    #     newBank,
-    #     newAccount
-    # ])
+    arrayUndefined.append(Source(Name='Undefined'))
+    arrayUndefined.append(Place(Name='Undefined', CategoryID=0, Address='', Latitude=0.0, Longitude=0.0))
+    arrayUndefined.append(Currency(Code='Undefined', Name='Undefined'))
+    arrayUndefined.append(TypeOperation(Name='Undefined', Direction=0))
+    arrayUndefined.append(Description(Description='Undefined'))
+    arrayUndefined.append(Category(Name='Undefined', Group='Undefined'))
+    arrayUndefined.append(TypeAccount(Name='Undefined'))
+    arrayUndefined.append(Person(Firstname='Undefined', Middlename='Undefined', Lastname='Undefined', Family='Undefined'))
+    arrayUndefined.append(Bank(Name='Undefined'))
+    arrayUndefined.append(Account(Number='Undefined', BankID=1, TypeAccountID=1, PersonID=1))
+
     session.add_all(arrayUndefined)
     session.commit()
