@@ -9,15 +9,15 @@ Base = declarative_base()
 class Transaction(Base):
     __tablename__ = 'Transactions'
     TransactionID = Column('TransactionID', Integer, primary_key=True, autoincrement=True)
-    SourceID = Column('SourceID', Integer, ForeignKey('Sources.SourceID'))
+    SourceID = Column('SourceID', Integer, ForeignKey('Sources.SourceID'), nullable=False, default=1)
     DateCreated = Column('DateCreated', DateTime)
-    TypeOperationID = Column('TypeOperationID', Integer, ForeignKey('TypeOperations.TypeOperationID'))
+    TypeOperationID = Column('TypeOperationID', Integer, ForeignKey('TypeOperations.TypeOperationID'), nullable=False, default=1)
     Sum = Column('Sum', Float)
-    CurrencyTypeID = Column('CurrencyTypeID', Integer, ForeignKey('Currencies.CurrencyID'))
-    DescriptionID = Column('DescriptionID', Integer, ForeignKey('Descriptions.DescriptionID'))
-    PlaceID = Column('PlaceID', Integer, ForeignKey('Places.PlaceID'))
-    CategoryID = Column('CategoryID', Integer, ForeignKey('Categories.CategoryID'))
-    AccountID = Column('AccountID', Integer, ForeignKey('Accounts.AccountID'))
+    CurrencyTypeID = Column('CurrencyTypeID', Integer, ForeignKey('Currencies.CurrencyID'), nullable=False, default=1)
+    DescriptionID = Column('DescriptionID', Integer, ForeignKey('Descriptions.DescriptionID'), nullable=False, default=1)
+    PlaceID = Column('PlaceID', Integer, ForeignKey('Places.PlaceID'), nullable=False, default=1)
+    CategoryID = Column('CategoryID', Integer, ForeignKey('Categories.CategoryID'), nullable=False, default=1)
+    AccountID = Column('AccountID', Integer, ForeignKey('Accounts.AccountID'), nullable=False, default=1)
 
 class Source(Base):
     __tablename__ = 'Sources'
@@ -42,7 +42,7 @@ class TypeOperation(Base):
     __tablename__ = 'TypeOperations'
     TypeOperationID = Column('TypeOperationID', Integer, primary_key=True, autoincrement=True)
     Name = Column('Name', String)
-    Direction = Column('Direction', Integer, nullable=False)
+    Direction = Column('Direction', Integer, nullable=False, default=0)
 
 class Description(Base):
     __tablename__ = 'Descriptions'
@@ -57,7 +57,7 @@ class Category(Base):
 
 class TypeAccount(Base):
     __tablename__ = 'TypeAccounts'
-    TypeAccountID = Column('TypeAccountID', Integer, primary_key=True, autoincrement=True)
+    TypeAccountID = Column('TypeAccountID', Integer, primary_key=True, autoincrement=True, nullable=False)
     Name = Column('Name', String)
 
 class Person(Base):
@@ -77,9 +77,9 @@ class Account(Base):
     __tablename__ = 'Accounts'
     AccountID = Column('AccountID', Integer, primary_key=True, autoincrement=True)
     Number = Column('Number', String)
-    BankID = Column('BankID', Integer, ForeignKey('Banks.BankID'))
-    TypeAccountID = Column('TypeAccountID', Integer, ForeignKey('TypeAccounts.TypeAccountID'))
-    PersonID = Column('PersonID', Integer, ForeignKey('Persons.PersonID'))
+    BankID = Column('BankID', Integer, ForeignKey('Banks.BankID'), nullable=False, default=1)
+    TypeAccountID = Column('TypeAccountID', Integer, ForeignKey('TypeAccounts.TypeAccountID'), nullable=False, default=1)
+    PersonID = Column('PersonID', Integer, ForeignKey('Persons.PersonID'), nullable=False, default=1)
 
 def __init__():
     inspector = Inspector.from_engine(engine)
@@ -97,7 +97,7 @@ def InitializeUndefined():
     arrayUndefined = []
 
     arrayUndefined.append(Source(Name='Undefined'))
-    arrayUndefined.append(Place(Name='Undefined', CategoryID=0, Address='', Latitude=0.0, Longitude=0.0))
+    arrayUndefined.append(Place(Name='Undefined', Address='', Latitude=0.0, Longitude=0.0))
     arrayUndefined.append(Currency(Code='Undefined', Name='Undefined'))
     arrayUndefined.append(TypeOperation(Name='Undefined', Direction=0))
     arrayUndefined.append(Description(Description='Undefined'))
@@ -109,3 +109,16 @@ def InitializeUndefined():
 
     session.add_all(arrayUndefined)
     session.commit()
+
+def TypeOperationInsert(unique_values):
+    Session = sessionmaker(engine)
+    session = Session()    
+
+    for value in unique_values:
+        type_op = session.query(TypeOperation).filter(TypeOperation.Name == value).first()
+        if not type_op:
+            type_op = TypeOperation(Name=value)
+            session.add(type_op)
+
+    session.commit()
+    session.close()

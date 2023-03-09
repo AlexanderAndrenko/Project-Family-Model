@@ -2,6 +2,8 @@
 import Model.Model as Model
 from sqlalchemy.orm import sessionmaker
 import datetime
+import sberETL
+import pandas as pd
 
 Model.__init__()
 
@@ -18,5 +20,13 @@ session = Session()
 #         PlaceID = 1,
 #         AccountID = 1
 #     )
+
+total = sberETL.prepareDataFile()
+
+
+Model.TypeOperationInsert(total['Тип операции'].unique())
+
+print(total.head(100))
+
 
 session.close()
