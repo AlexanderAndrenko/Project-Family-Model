@@ -2,6 +2,7 @@ from sqlalchemy import Boolean, ForeignKey, create_engine, Column, Integer, Stri
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.engine.reflection import Inspector
+import pandas as pd
 
 engine = create_engine('sqlite:///DWH.db')
 Base = declarative_base()
@@ -119,6 +120,45 @@ def TypeOperationInsert(unique_values):
         if not type_op:
             type_op = TypeOperation(Name=value)
             session.add(type_op)
+
+    session.commit()
+    session.close()
+
+def CurrencyInsert(unique_values):
+    Session = sessionmaker(engine)
+    session = Session()    
+
+    for value in unique_values:
+        codeCurrency = session.query(Currency).filter(Currency.Code == value).first()
+        if not codeCurrency:
+            codeCurrency = Currency(Code=value)
+            session.add(codeCurrency)
+
+    session.commit()
+    session.close()
+
+def DescriptionInsert(unique_values):
+    Session = sessionmaker(engine)
+    session = Session()    
+
+    for value in unique_values:
+        description = session.query(Description).filter(Description.Description == value).first()
+        if not description:
+            description = Description(Description=value)
+            session.add(description)
+
+    session.commit()
+    session.close()
+
+def AccountInsert(unique_values):
+    Session = sessionmaker(engine)
+    session = Session()
+
+    for value in unique_values:
+        number = session.query(Account).filter(Account.Number == value).first()
+        if not number:
+            number = Account(Number=value)
+            session.add(number)
 
     session.commit()
     session.close()

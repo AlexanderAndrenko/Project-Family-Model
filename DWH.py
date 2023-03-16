@@ -4,29 +4,24 @@ from sqlalchemy.orm import sessionmaker
 import datetime
 import sberETL
 import pandas as pd
+import numpy as np
 
 Model.__init__()
 
 Session = sessionmaker(Model.engine)
 session = Session()
 
-# new_transaction = Model.Transaction(
-#         SourceID = 1,
-#         DateCreated = datetime.datetime.now(), 
-#         TypeOperationID = 1, 
-#         Sum = 100,
-#         CurrencyTypeID = 1,
-#         DescriptionID = 1,
-#         PlaceID = 1,
-#         AccountID = 1
-#     )
-
 total = sberETL.prepareDataFile()
 
+if not total.empty:
+    Model.TypeOperationInsert(total['Тип операции'].unique())
+    Model.CurrencyInsert(total['Валюта'].unique())
+    Model.DescriptionInsert(total['Описание'].unique())
 
-Model.TypeOperationInsert(total['Тип операции'].unique())
+    accountNumber = total['Номер счета/карты зачисления'].unique()
+    accountNumber = accountNumber[~np.isnan(accountNumber) & (accountNumber != None)]
+    Model.AccountInsert(accountNumber)
 
-print(total.head(100))
-
+print(total['Номер счета/карты зачисления'].unique())
 
 session.close()
