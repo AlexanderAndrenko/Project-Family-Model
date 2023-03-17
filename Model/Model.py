@@ -7,6 +7,8 @@ import pandas as pd
 engine = create_engine('sqlite:///DWH.db')
 Base = declarative_base()
 
+#region Entites classes
+
 class Transaction(Base):
     __tablename__ = 'Transactions'
     TransactionID = Column('TransactionID', Integer, primary_key=True, autoincrement=True)
@@ -82,6 +84,8 @@ class Account(Base):
     TypeAccountID = Column('TypeAccountID', Integer, ForeignKey('TypeAccounts.TypeAccountID'), nullable=False, default=1)
     PersonID = Column('PersonID', Integer, ForeignKey('Persons.PersonID'), nullable=False, default=1)
 
+#endregion
+
 def __init__():
     inspector = Inspector.from_engine(engine)
 
@@ -111,9 +115,12 @@ def InitializeUndefined():
     session.add_all(arrayUndefined)
     session.commit()
 
+#region Insert operations
+
 def TypeOperationInsert(unique_values):
     Session = sessionmaker(engine)
-    session = Session()    
+    session = Session()   
+    unique_values = unique_values[~pd.isna(unique_values)]
 
     for value in unique_values:
         type_op = session.query(TypeOperation).filter(TypeOperation.Name == value).first()
@@ -126,7 +133,8 @@ def TypeOperationInsert(unique_values):
 
 def CurrencyInsert(unique_values):
     Session = sessionmaker(engine)
-    session = Session()    
+    session = Session()   
+    unique_values = unique_values[~pd.isna(unique_values)]
 
     for value in unique_values:
         codeCurrency = session.query(Currency).filter(Currency.Code == value).first()
@@ -139,7 +147,8 @@ def CurrencyInsert(unique_values):
 
 def DescriptionInsert(unique_values):
     Session = sessionmaker(engine)
-    session = Session()    
+    session = Session() 
+    unique_values = unique_values[~pd.isna(unique_values)]  
 
     for value in unique_values:
         description = session.query(Description).filter(Description.Description == value).first()
@@ -153,6 +162,7 @@ def DescriptionInsert(unique_values):
 def AccountInsert(unique_values):
     Session = sessionmaker(engine)
     session = Session()
+    unique_values = unique_values[~pd.isna(unique_values)]
 
     for value in unique_values:
         number = session.query(Account).filter(Account.Number == value).first()
@@ -162,3 +172,24 @@ def AccountInsert(unique_values):
 
     session.commit()
     session.close()
+
+def CategoryInsert(unique_values):
+
+    Session = sessionmaker(engine)
+    session = Session()
+    unique_values = unique_values[~pd.isna(unique_values)]
+
+    for value in unique_values:
+        name = session.query(Category).filter(Category.Name == value).first()
+        if not name:
+            name = Category(Name=value)
+            session.add(name)
+
+    session.commit()
+    session.close()
+
+#endregion
+
+
+
+
