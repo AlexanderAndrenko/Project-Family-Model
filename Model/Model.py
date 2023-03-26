@@ -115,12 +115,37 @@ def InitializeUndefined():
     session.add_all(arrayUndefined)
     session.commit()
 
-#region Insert operations
+#region INSERT operations
+
+def SourceInsert(unique_values):
+    Session = sessionmaker(engine)
+    session = Session()
+
+    for value in unique_values:
+        name = session.query(Source).filter(Source.Name == value).first()
+        if not name:
+            name = Source(Name=value)
+            session.add(name)
+
+    session.commit()
+    session.close()
+
+def PlaceInsert(unique_values):
+    Session = sessionmaker(engine)
+    session = Session() 
+
+    for value in unique_values:
+        place = session.query(Place).filter_by(Name=value['Name'], Address=value['Address'], Latitude=value['Latitude'], Longitude=value['Longitude']).first()
+        if not place:
+            place = Place(Name=value['Name'], Address=value['Address'], Latitude=value['Latitude'], Longitude=value['Longitude'])
+            session.add(place)
+
+    session.commit()
+    session.close()
 
 def TypeOperationInsert(unique_values):
     Session = sessionmaker(engine)
-    session = Session()   
-    unique_values = unique_values[~pd.isna(unique_values)]
+    session = Session()
 
     for value in unique_values:
         type_op = session.query(TypeOperation).filter(TypeOperation.Name == value).first()
@@ -133,8 +158,7 @@ def TypeOperationInsert(unique_values):
 
 def CurrencyInsert(unique_values):
     Session = sessionmaker(engine)
-    session = Session()   
-    unique_values = unique_values[~pd.isna(unique_values)]
+    session = Session() 
 
     for value in unique_values:
         codeCurrency = session.query(Currency).filter(Currency.Code == value).first()
@@ -147,8 +171,7 @@ def CurrencyInsert(unique_values):
 
 def DescriptionInsert(unique_values):
     Session = sessionmaker(engine)
-    session = Session() 
-    unique_values = unique_values[~pd.isna(unique_values)]  
+    session = Session()  
 
     for value in unique_values:
         description = session.query(Description).filter(Description.Description == value).first()
@@ -162,7 +185,6 @@ def DescriptionInsert(unique_values):
 def AccountInsert(unique_values):
     Session = sessionmaker(engine)
     session = Session()
-    unique_values = unique_values[~pd.isna(unique_values)]
 
     for value in unique_values:
         number = session.query(Account).filter(Account.Number == value).first()
@@ -177,7 +199,6 @@ def CategoryInsert(unique_values):
 
     Session = sessionmaker(engine)
     session = Session()
-    unique_values = unique_values[~pd.isna(unique_values)]
 
     for value in unique_values:
         name = session.query(Category).filter(Category.Name == value).first()
@@ -190,6 +211,11 @@ def CategoryInsert(unique_values):
 
 #endregion
 
+#region SELECT operations
+
+
+
+#endregion
 
 
 
