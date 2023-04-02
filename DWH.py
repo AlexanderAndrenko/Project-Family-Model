@@ -7,5 +7,5 @@ import pandas as pd
 import numpy as np
 
 Model.__init__()
+sberETL.loadSberDataAlexander()
 
-session.close()

@@ -86,6 +86,8 @@ class Account(Base):
 
 #endregion
 
+#region Initialize methods
+
 def __init__():
     inspector = Inspector.from_engine(engine)
 
@@ -95,6 +97,9 @@ def __init__():
 def CreateDataBase():
     Base.metadata.create_all(engine)
     InitializeUndefined()
+    InitializeBank()
+    InitializePerson()
+    InitializeTypeAccount()
 
 def InitializeUndefined():
     Session = sessionmaker(engine)
@@ -114,6 +119,96 @@ def InitializeUndefined():
 
     session.add_all(arrayUndefined)
     session.commit()
+
+def InitializePerson():
+    Session = sessionmaker(engine)
+    session = Session()
+    arrayPerson = []
+
+    arrayPerson.append(
+        Person(
+            Firstname = 'Александр',
+            Middlename = 'Олегович',
+            Lastname = 'Андренко',
+            Family = 'Андренко')
+        )
+    
+    arrayPerson.append(
+        Person(
+            Firstname = 'Дарья',
+            Middlename = 'Андреевна',
+            Lastname = 'Андренко',
+            Family = 'Андренко')
+        )
+    
+    session.add_all(arrayPerson)
+    session.commit()
+
+def InitializeBank():
+    Session = sessionmaker(engine)
+    session = Session()
+    arrayBank = []
+
+    arrayBank.append(
+        Bank(
+            Name = 'СБЕР'
+        )
+    )
+    
+    arrayBank.append(
+        Bank(
+            Name = 'Росбанк'
+        )
+    )
+
+    arrayBank.append(
+        Bank(
+            Name = 'Тинькофф'
+        )
+    )
+
+    arrayBank.append(
+        Bank(
+            Name = 'ВТБ'
+        )
+    )
+
+    arrayBank.append(
+        Bank(
+            Name = 'Альфа'
+        )
+    )
+
+    session.add_all(arrayBank)
+    session.commit()
+
+def InitializeTypeAccount():
+    Session = sessionmaker(engine)
+    session = Session()
+    arrayTypeAccount = []
+
+    arrayTypeAccount.append(
+        TypeAccount(
+            Name = 'Дебетовая карта'
+        )
+    )
+
+    arrayTypeAccount.append(
+        TypeAccount(
+            Name = 'Кредитная карта'
+        )
+    )
+
+    arrayTypeAccount.append(
+        TypeAccount(
+            Name = 'Накопительный счет'
+        )
+    )
+
+    session.add_all(arrayTypeAccount)
+    session.commit()
+
+#endregion
 
 #region INSERT operations
 
