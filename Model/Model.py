@@ -210,9 +210,9 @@ def InitializeTypeAccount():
 
 #endregion
 
-#region INSERT operations
+#region SET operations
 
-def SourceInsert(unique_values):
+def SetSource(unique_values):
     Session = sessionmaker(engine)
     session = Session()
 
@@ -225,7 +225,7 @@ def SourceInsert(unique_values):
     session.commit()
     session.close()
 
-def PlaceInsert(unique_values):
+def SetPlace(unique_values):
     Session = sessionmaker(engine)
     session = Session() 
 
@@ -238,7 +238,7 @@ def PlaceInsert(unique_values):
     session.commit()
     session.close()
 
-def TypeOperationInsert(unique_values):
+def SetTypeOperation(unique_values):
     Session = sessionmaker(engine)
     session = Session()
 
@@ -251,7 +251,7 @@ def TypeOperationInsert(unique_values):
     session.commit()
     session.close()
 
-def CurrencyInsert(unique_values):
+def SetCurrency(unique_values):
     Session = sessionmaker(engine)
     session = Session() 
 
@@ -264,7 +264,7 @@ def CurrencyInsert(unique_values):
     session.commit()
     session.close()
 
-def DescriptionInsert(unique_values):
+def SetDescription(unique_values):
     Session = sessionmaker(engine)
     session = Session()  
 
@@ -277,7 +277,7 @@ def DescriptionInsert(unique_values):
     session.commit()
     session.close()
 
-def AccountInsert(unique_values):
+def SetAccount(unique_values):
     Session = sessionmaker(engine)
     session = Session()
 
@@ -290,7 +290,7 @@ def AccountInsert(unique_values):
     session.commit()
     session.close()
 
-def CategoryInsert(unique_values):
+def SetCategory(unique_values):
 
     Session = sessionmaker(engine)
     session = Session()
@@ -304,11 +304,74 @@ def CategoryInsert(unique_values):
     session.commit()
     session.close()
 
+def SetTransaction(list_of_transaction):
+    return 1
 #endregion
 
-#region SELECT operations
+#region GET operations
 
+def GetSource():
+    Session = sessionmaker(engine)
+    session = Session()
 
+    source = session.query(Source).all()
+
+    return source
+
+def GetPlace():
+    Session = sessionmaker(engine)
+    session = Session()
+
+    place = session.query(Place).all()
+
+    return place
+
+def GetTypeOperation():
+    Session = sessionmaker(engine)
+    session = Session()
+
+    typeOperation = session.query(TypeOperation).all()
+
+    return typeOperation
+
+def GetCurrency():
+    Session = sessionmaker(engine)
+    session = Session()
+
+    currency = session.query(Currency).all()
+
+    return currency
+
+def GetDescription():
+    Session = sessionmaker(engine)
+    session = Session()
+
+    description = session.query(Description).all()
+
+    return description
+
+def GetAccount():
+    Session = sessionmaker(engine)
+    session = Session()
+
+    account = session.query(Account).all()
+
+    return account
+
+def GetCategory():
+    Session = sessionmaker(engine)
+    session = Session()
+
+    category = session.query(Category).all()
+
+    return category
+
+def GetBank():
+    Session = sessionmaker(engine)
+    session = Session()
+
+    bank = pd.read_sql('SELECT * FROM Bank', engine) #session.query(Bank).all()
+    return bank
 
 #endregion
 

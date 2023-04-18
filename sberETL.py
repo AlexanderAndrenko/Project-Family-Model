@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import os 
 from os import walk
@@ -51,8 +52,22 @@ def loadSberDataAlexander():
     total = prepareDataFile("Alexander")
 
     if not total.empty:
-        Model.Model.TypeOperationInsert(total['Тип операции'].unique())
-        Model.Model.CurrencyInsert(total['Валюта'].unique())
-        Model.Model.DescriptionInsert(total['Описание'].unique())
-        Model.Model.AccountInsert(total['Номер счета/карты зачисления'].unique())
-        Model.Model.CategoryInsert(total['Категория'].unique())
+        Model.Model.SetTypeOperation(ExcludeNaN(total['Тип операции'].unique()))
+        Model.Model.SetCurrency(ExcludeNaN(total['Валюта'].unique()))
+        Model.Model.SetDescription(ExcludeNaN(total['Описание'].unique()))
+        Model.Model.SetCategory(ExcludeNaN(total['Категория'].unique()))
+
+        accounts = pd.DataFrame(total['Номер счета/карты зачисления'].unique())
+        listBank = Model.Model.GetBank()
+        # BankID = listBank.
+
+        accounts['BankID'] = 2
+
+        print(accounts)
+
+        
+
+        # Model.Model.SetAccount(ExcludeNaN())
+
+def ExcludeNaN(insertArray):
+    return insertArray[~pd.isna(insertArray)]
