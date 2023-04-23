@@ -370,7 +370,7 @@ def GetBank():
     Session = sessionmaker(engine)
     session = Session()
 
-    bank = pd.read_sql('SELECT * FROM Bank', engine) #session.query(Bank).all()
+    bank = session.query(Bank).all()
     return bank
 
 #endregion

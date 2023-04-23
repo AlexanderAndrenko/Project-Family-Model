@@ -60,12 +60,13 @@ def loadSberDataAlexander():
         accounts = pd.DataFrame(total['Номер счета/карты зачисления'].unique())
         listBank = Model.Model.GetBank()
         # BankID = listBank.
+        listBank = [(bank.BankID, bank.Name) for bank in listBank]
+        listBank = pd.DataFrame(listBank, columns=['BankID', 'Name'])
 
-        accounts['BankID'] = 2
-
-        print(accounts)
-
-        
+        print(listBank)
+        bankID = listBank.loc[listBank['Name'] == "СБЕР"].iloc[0]
+        total['BankID'] = bankID['BankID']
+        print(total.head(10))
 
         # Model.Model.SetAccount(ExcludeNaN())
 
