@@ -57,18 +57,39 @@ def loadSberDataAlexander():
         Model.Model.SetDescription(ExcludeNaN(total['Описание'].unique()))
         Model.Model.SetCategory(ExcludeNaN(total['Категория'].unique()))
 
-        accounts = pd.DataFrame(total['Номер счета/карты зачисления'].unique())
-        listBank = Model.Model.GetBank()
-        # BankID = listBank.
-        listBank = [(bank.BankID, bank.Name) for bank in listBank]
-        listBank = pd.DataFrame(listBank, columns=['BankID', 'Name'])
-
-        print(listBank)
-        bankID = listBank.loc[listBank['Name'] == "СБЕР"].iloc[0]
-        total['BankID'] = bankID['BankID']
-        print(total.head(10))
-
-        # Model.Model.SetAccount(ExcludeNaN())
+        accountsIncome = pd.DataFrame(ExcludeNaN(total['Номер счета/карты зачисления'].unique()))
+        accountsIncome.rename(columns={accountsIncome.columns[0] : 'Number'}, inplace=True)
+        accountsOutcome = pd.DataFrame(ExcludeNaN(total['Номер счета/карты списания'].unique()))
+        accountsOutcome.rename(columns={accountsOutcome.columns[0] : 'Number'}, inplace=True)
+        accounts = pd.concat([accountsIncome, accountsOutcome]).drop_duplicates()
+        LoadAccounts(accounts)
 
 def ExcludeNaN(insertArray):
     return insertArray[~pd.isna(insertArray)]
+
+def LoadAccounts(insertAccounts):    
+
+    accountsDWH = Model.Model.GetAccount()
+    listAccount = [(account.AccountID, account.Number, account.PersonID, account.TypeAccountID, account.BankID) for account in accountsDWH]
+    listAccount = pd.DataFrame(listAccount, columns=['AccountID', 'Number','PersonID','TypeAccountID','BankID'])
+    
+    insertAccounts = insertAccounts.merge(listAccount, left_on='Number', right_on='Number', how='left')
+
+    listBank = Model.Model.GetBank()
+    listBank = [(bank.BankID, bank.Name) for bank in listBank]
+    listBank = pd.DataFrame(listBank, columns=['BankID', 'Name'])
+    bankID = listBank.loc[listBank['Name'] == "СБЕР"].iloc[0]
+
+    listPerson = Model.Model.GetPerson()
+    listPerson = [(person.PersonID, person.Firstname, person.Lastname) for person in listPerson]
+    listPerson = pd.DataFrame(listPerson, columns=['PersonID', 'Firstname', 'Lastname'])
+    personID = listPerson.loc[(listPerson['Firstname'] == "Александр") & (listPerson['Lastname'] == "Андренко")].iloc[0]
+
+    insertAccounts['BankID'] = np.where(pd.isna(insertAccounts['BankID']), bankID['BankID'], insertAccounts['BankID'])
+    insertAccounts['PersonID'] = personID['PersonID']
+
+    # Ты остановился на том, что тебе необходимо написать метод загрузки аккаунтов в хранилище.
+    # Необходимо сопоставить значения из базы, которые уже существуют и проставить им значения, которые уже есть
+    # Чтобы избежать затирания даннах. Для новых счетов нужно проставлять, то что известно. Остальное руками в БД 
+
+    print(insertAccounts)

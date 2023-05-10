@@ -373,6 +373,13 @@ def GetBank():
     bank = session.query(Bank).all()
     return bank
 
+def GetPerson():
+    Session = sessionmaker(engine)
+    session = Session()
+
+    person = session.query(Person).all()
+    return person
+
 #endregion
 
 
