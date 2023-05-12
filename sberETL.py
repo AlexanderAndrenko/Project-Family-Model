@@ -85,11 +85,16 @@ def LoadAccounts(insertAccounts):
     listPerson = pd.DataFrame(listPerson, columns=['PersonID', 'Firstname', 'Lastname'])
     personID = listPerson.loc[(listPerson['Firstname'] == "Александр") & (listPerson['Lastname'] == "Андренко")].iloc[0]
 
-    insertAccounts['BankID'] = np.where(pd.isna(insertAccounts['BankID']), bankID['BankID'], insertAccounts['BankID'])
+    # insertAccounts['BankID'] = np.where(pd.isna(insertAccounts['BankID']), bankID['BankID'], insertAccounts['BankID'])
+    # insertAccounts['PersonID'] = np.where(pd.isna(insertAccounts['PersonID']), personID['PersonID'], insertAccounts['PersonID'])
+
+    # Нужно брать только те которых нет в КХД
+    insertAccounts = insertAccounts[pd.isna(insertAccounts['AccountID'])]
+
+    insertAccounts['BankID'] = bankID['BankID']
     insertAccounts['PersonID'] = personID['PersonID']
+    insertAccounts['TypeAccountID'] = 1
 
-    # Ты остановился на том, что тебе необходимо написать метод загрузки аккаунтов в хранилище.
-    # Необходимо сопоставить значения из базы, которые уже существуют и проставить им значения, которые уже есть
-    # Чтобы избежать затирания даннах. Для новых счетов нужно проставлять, то что известно. Остальное руками в БД 
+    listAccount = []
 
-    print(insertAccounts)
+    Model.Model.SetAccount(insertAccounts)
