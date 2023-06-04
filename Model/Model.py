@@ -281,11 +281,7 @@ def SetAccount(unique_values):
     Session = sessionmaker(engine)
     session = Session()
 
-    for value in unique_values:
-        number = session.query(Account).filter(Account.Number == value).first()
-        if not number:
-            number = Account(Number=value)
-            session.add(number)
+    session.add_all(unique_values)
 
     session.commit()
     session.close()
