@@ -282,6 +282,11 @@ def SetAccount(unique_values):
     session = Session()
 
     session.add_all(unique_values)
+    for value in unique_values:
+        name = session.query(Account).filter(Account.Name == value).first()
+        if not name:
+            name = Account(Name=value)
+            session.add(name)
 
     session.commit()
     session.close()
@@ -302,6 +307,14 @@ def SetCategory(unique_values):
 
 def SetTransaction(list_of_transaction):
     return 1
+
+def SetEntites(unique_values):
+
+    Session = sessionmaker(engine)
+    session = Session()
+    session.add_all(unique_values)
+    session.commit()
+    session.close()
 #endregion
 
 #region GET operations

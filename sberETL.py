@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import os 
 from os import walk
-import Model.Model
+import Model.Model as mm
 from sqlalchemy.orm import sessionmaker
 
 def prepareDataFile(OwnerName):
@@ -46,16 +46,65 @@ def prepareDataFile(OwnerName):
     return totalData
         
 def loadSberDataAlexander():
-    Session = sessionmaker(Model.Model.engine)
+    Session = sessionmaker(mm.engine)
     session = Session()
 
     total = prepareDataFile("Alexander")
 
     if not total.empty:
-        Model.Model.SetTypeOperation(ExcludeNaN(total['Тип операции'].unique()))
-        Model.Model.SetCurrency(ExcludeNaN(total['Валюта'].unique()))
-        Model.Model.SetDescription(ExcludeNaN(total['Описание'].unique()))
-        Model.Model.SetCategory(ExcludeNaN(total['Категория'].unique()))
+        # mm.SetTypeOperation(ExcludeNaN(total['Тип операции'].unique()))
+        # mm.SetCurrency(ExcludeNaN(total['Валюта'].unique()))
+        # mm.SetDescription(ExcludeNaN(total['Описание'].unique()))
+        # mm.SetCategory(ExcludeNaN(total['Категория'].unique()))
+        
+        # Loading types of opreations
+        listOfTypeOperations = []
+
+        for value in ExcludeNaN(total['Тип операции'].unique()):
+            type_op = session.query(mm.TypeOperation).filter(mm.TypeOperation.Name == value).first()
+            if not type_op:
+                type_op = mm.TypeOperation(Name=value)
+                listOfTypeOperations.append(type_op)
+
+        mm.SetEntites(listOfTypeOperations)
+
+        # Loading currencies 
+        listOfCurrencies = []
+
+        for value in ExcludeNaN(total['Валюта'].unique()):
+            type_op = session.query(mm.Currency).filter(mm.Currency.Code == value).first()
+            if not type_op:
+                type_op = mm.Currency(Code=value)
+                listOfCurrencies.append(type_op)
+
+        mm.SetEntites(listOfCurrencies)
+
+        # Loading descriptions 
+        listOfDescriptions = []
+
+        for value in ExcludeNaN(total['Описание'].unique()):
+            type_op = session.query(mm.Description).filter(mm.Description.Description == value).first()
+            if not type_op:
+                type_op = mm.Description(Description=value)
+                listOfDescriptions.append(type_op)
+
+        mm.SetEntites(listOfDescriptions)
+
+        # Loading categories 
+        listOfCategories = []
+
+        for value in ExcludeNaN(total['Описание'].unique()):
+            type_op = session.query(mm.Category).filter(mm.Category.Name == value).first()
+            if not type_op:
+                type_op = mm.Category(Name=value)
+                listOfCategories.append(type_op)
+
+        mm.SetEntites(listOfCategories)
+
+        # mm.SetEntites(ExcludeNaN(total['Тип операции'].unique()))
+        # mm.SetEntites(ExcludeNaN(total['Валюта'].unique()))
+        # mm.SetEntites(ExcludeNaN(total['Описание'].unique()))
+        # mm.SetEntites(ExcludeNaN(total['Категория'].unique()))
 
         accountsIncome = pd.DataFrame(ExcludeNaN(total['Номер счета/карты зачисления'].unique()))
         accountsIncome.rename(columns={accountsIncome.columns[0] : 'Number'}, inplace=True)
@@ -69,18 +118,18 @@ def ExcludeNaN(insertArray):
 
 def LoadAccounts(insertAccounts):    
 
-    accountsDWH = Model.Model.GetAccount()
+    accountsDWH = mm.GetAccount()
     listAccount = [(account.AccountID, account.Number, account.PersonID, account.TypeAccountID, account.BankID) for account in accountsDWH]
     listAccount = pd.DataFrame(listAccount, columns=['AccountID', 'Number','PersonID','TypeAccountID','BankID'])
     
     insertAccounts = insertAccounts.merge(listAccount, left_on='Number', right_on='Number', how='left')
 
-    listBank = Model.Model.GetBank()
+    listBank = mm.GetBank()
     listBank = [(bank.BankID, bank.Name) for bank in listBank]
     listBank = pd.DataFrame(listBank, columns=['BankID', 'Name'])
     bankID = listBank.loc[listBank['Name'] == "СБЕР"].iloc[0]
 
-    listPerson = Model.Model.GetPerson()
+    listPerson = mm.GetPerson()
     listPerson = [(person.PersonID, person.Firstname, person.Lastname) for person in listPerson]
     listPerson = pd.DataFrame(listPerson, columns=['PersonID', 'Firstname', 'Lastname'])
     personID = listPerson.loc[(listPerson['Firstname'] == "Александр") & (listPerson['Lastname'] == "Андренко")].iloc[0]
@@ -97,4 +146,4 @@ def LoadAccounts(insertAccounts):
 
     listAccount = []
 
-    Model.Model.SetAccount(insertAccounts)
+    # mm.SetAccount(insertAccounts)
