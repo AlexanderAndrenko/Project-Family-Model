@@ -1,9 +1,11 @@
+import locale
 import numpy as np
 import pandas as pd
 import os 
 from os import walk
 import Model.Model as mm
 from sqlalchemy.orm import sessionmaker
+import dateparser
 
 def prepareDataFile(OwnerName):
 
@@ -52,10 +54,6 @@ def loadSberDataAlexander():
     total = prepareDataFile("Alexander")
 
     if not total.empty:
-        # mm.SetTypeOperation(ExcludeNaN(total['Тип операции'].unique()))
-        # mm.SetCurrency(ExcludeNaN(total['Валюта'].unique()))
-        # mm.SetDescription(ExcludeNaN(total['Описание'].unique()))
-        # mm.SetCategory(ExcludeNaN(total['Категория'].unique()))
         
         # Loading types of opreations
         listOfTypeOperations = []
@@ -93,7 +91,7 @@ def loadSberDataAlexander():
         # Loading categories 
         listOfCategories = []
 
-        for value in ExcludeNaN(total['Описание'].unique()):
+        for value in ExcludeNaN(total['Категория'].unique()):
             type_op = session.query(mm.Category).filter(mm.Category.Name == value).first()
             if not type_op:
                 type_op = mm.Category(Name=value)
@@ -101,35 +99,22 @@ def loadSberDataAlexander():
 
         mm.SetEntites(listOfCategories)
 
-        # Preparation a list of accounts
-        # accountsIncome = pd.DataFrame(ExcludeNaN(total['Номер счета/карты зачисления'].unique()))
-        # accountsIncome.rename(columns={accountsIncome.columns[0] : 'Number'}, inplace=True)
-        # accountsOutcome = pd.DataFrame(ExcludeNaN(total['Номер счета/карты списания'].unique()))
-        # accountsOutcome.rename(columns={accountsOutcome.columns[0] : 'Number'}, inplace=True)
-        # accounts = pd.concat([accountsIncome, accountsOutcome]).drop_duplicates()
-
         accountsIncome = ExcludeNaN(total['Номер счета/карты зачисления'].unique())
         accountsOutcome = ExcludeNaN(total['Номер счета/карты списания'].unique())
         accounts = [j for i in [accountsIncome, accountsOutcome] for j in i]
 
         LoadAccounts(accounts)
 
+        total['AccountName'] = np.where( pd.isnull(total['Номер счета/карты зачисления']), total['Номер счета/карты списания'], total['Номер счета/карты зачисления'])
+        LoadTransactions(total)
+
 def ExcludeNaN(insertArray):
     return insertArray[~pd.isna(insertArray)]
 
 def LoadAccounts(insertAccounts):    
-
+    
     Session = sessionmaker(mm.engine)
     session = Session()
-
-    # accountsDWH = mm.GetAccount()
-
-    # listAccount = [(account.AccountID, account.Number, account.PersonID, account.TypeAccountID, account.BankID) for account in accountsDWH]
-    # listAccount = pd.DataFrame(listAccount, columns=['AccountID', 'Number','PersonID','TypeAccountID','BankID'])
-    # print(insertAccounts)
-    # insertAccounts = insertAccounts.merge(listAccount, left_on='Number', right_on='Number', how='left')
-
-    
 
     listBank = mm.GetBank()
     listBank = [(bank.BankID, bank.Name) for bank in listBank]
@@ -141,17 +126,6 @@ def LoadAccounts(insertAccounts):
     listPerson = pd.DataFrame(listPerson, columns=['PersonID', 'Firstname', 'Lastname'])
     personID = listPerson.loc[(listPerson['Firstname'] == "Александр") & (listPerson['Lastname'] == "Андренко")].iloc[0]
 
-    # insertAccounts['BankID'] = np.where(pd.isna(insertAccounts['BankID']), bankID['BankID'], insertAccounts['BankID'])
-    # insertAccounts['PersonID'] = np.where(pd.isna(insertAccounts['PersonID']), personID['PersonID'], insertAccounts['PersonID'])
-
-    # Нужно брать только те которых нет в КХД
-    # insertAccounts = insertAccounts[pd.isna(insertAccounts['AccountID'])]
-
-    # insertAccounts['BankID'] = bankID['BankID']
-    # insertAccounts['PersonID'] = personID['PersonID']
-    # insertAccounts['TypeAccountID'] = 1
-
-    # Loading categories 
     listOfAccounts = []
 
     for value in set(insertAccounts):
@@ -167,7 +141,66 @@ def LoadAccounts(insertAccounts):
 
     mm.SetEntites(listOfAccounts)
 
+def LoadTransactions(insertTransactions):
 
-    # listAccount = []
+    Session = sessionmaker(mm.engine)
+    session = Session()
 
-    # mm.SetAccount(insertAccounts)
+    typeOperationDWH = mm.GetTypeOperation()
+    listTypesOperations = [(typeOperation.TypeOperationID, typeOperation.Name) for typeOperation in typeOperationDWH]
+    listTypesOperations = pd.DataFrame(listTypesOperations, columns=['TypeOperationID', 'Name'])
+    insertTransactions = insertTransactions.merge(listTypesOperations, left_on='Тип операции', right_on='Name', how='left')
+
+    categoriesDWH = mm.GetCategory()
+    listCategories = [(category.CategoryID, category.Name) for category in categoriesDWH]
+    listCategories = pd.DataFrame(listCategories, columns=['CategoryID', 'Name'])
+    insertTransactions = insertTransactions.merge(listCategories, left_on='Категория', right_on='Name', how='left')
+
+    currenciesDWH = mm.GetCurrency()
+    listCurrencies = [(currency.CurrencyID, currency.Code) for currency in currenciesDWH]
+    listCurrencies = pd.DataFrame(listCurrencies, columns=['CurrencyID', 'Code'])
+    insertTransactions = insertTransactions.merge(listCurrencies, left_on='Валюта', right_on='Code', how='left')
+
+    descriptionsDWH = mm.GetDescription()
+    listDescriptions = [(description.DescriptionID, description.Description) for description in descriptionsDWH]
+    listDescriptions = pd.DataFrame(listDescriptions, columns=['DescriptionID', 'Description'])
+    insertTransactions = insertTransactions.merge(listDescriptions, left_on='Описание', right_on='Description', how='left')
+
+    accountsDWH = mm.GetAccount()
+    listAccounts = [(account.AccountID, account.Number) for account in accountsDWH]
+    listAccounts = pd.DataFrame(listAccounts, columns=['AccountID', 'Number'])
+    insertTransactions = insertTransactions.merge(listAccounts, left_on='AccountName', right_on='Number', how='left')
+
+    
+    
+    listOfTransactions = []
+
+    for i in range(insertTransactions.shape[0]):
+        type_op = session.query(mm.Transaction).filter(
+            mm.Transaction.DateCreated == dateparser.parse(insertTransactions.loc[i]['Дата'], languages=['ru']),
+            mm.Transaction.TypeOperationID == insertTransactions.loc[i]['TypeOperationID'],
+            mm.Transaction.Sum == insertTransactions.loc[i]['Сумма'],
+            mm.Transaction.CurrencyID == insertTransactions.loc[i]['CurrencyID'],
+            mm.Transaction.DescriptionID == insertTransactions.loc[i]['DescriptionID'],
+            mm.Transaction.CategoryID == insertTransactions.loc[i]['CategoryID'],
+            mm.Transaction.AccountID == insertTransactions.loc[i]['AccountID']
+            ).first()
+        if not type_op:
+            type_op = mm.Transaction(
+                SourceID = 1,
+                DateCreated = dateparser.parse(insertTransactions.loc[i]['Дата'], languages=['ru']),
+                TypeOperationID = int(insertTransactions.loc[i]['TypeOperationID']),
+                Sum = insertTransactions.loc[i]['Сумма'],
+                CurrencyID = int(insertTransactions.loc[i]['CurrencyID']),
+                DescriptionID = int(insertTransactions.loc[i]['DescriptionID']),
+                PlaceID = 1,
+                CategoryID = int(insertTransactions.loc[i]['CategoryID']),
+                AccountID = int(insertTransactions.loc[i]['AccountID'])
+                )
+            listOfTransactions.append(type_op)
+
+
+    mm.SetEntites(listOfTransactions)
+
+    # print(insertTransactions)
+    # print(insertTransactions[['Номер','Дата','TypeOperationID', 'Сумма','CurrencyID', 'DescriptionID', 'CategoryID', 'AccountID']])

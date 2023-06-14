@@ -16,7 +16,7 @@ class Transaction(Base):
     DateCreated = Column('DateCreated', DateTime)
     TypeOperationID = Column('TypeOperationID', Integer, ForeignKey('TypeOperations.TypeOperationID'), nullable=False, default=1)
     Sum = Column('Sum', Float)
-    CurrencyTypeID = Column('CurrencyTypeID', Integer, ForeignKey('Currencies.CurrencyID'), nullable=False, default=1)
+    CurrencyID = Column('CurrencyID', Integer, ForeignKey('Currencies.CurrencyID'), nullable=False, default=1)
     DescriptionID = Column('DescriptionID', Integer, ForeignKey('Descriptions.DescriptionID'), nullable=False, default=1)
     PlaceID = Column('PlaceID', Integer, ForeignKey('Places.PlaceID'), nullable=False, default=1)
     CategoryID = Column('CategoryID', Integer, ForeignKey('Categories.CategoryID'), nullable=False, default=1)
