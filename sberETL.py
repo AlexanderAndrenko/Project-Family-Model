@@ -101,16 +101,17 @@ def loadSberDataAlexander():
 
         mm.SetEntites(listOfCategories)
 
-        # mm.SetEntites(ExcludeNaN(total['Тип операции'].unique()))
-        # mm.SetEntites(ExcludeNaN(total['Валюта'].unique()))
-        # mm.SetEntites(ExcludeNaN(total['Описание'].unique()))
-        # mm.SetEntites(ExcludeNaN(total['Категория'].unique()))
+        # Preparation a list of accounts
+        # accountsIncome = pd.DataFrame(ExcludeNaN(total['Номер счета/карты зачисления'].unique()))
+        # accountsIncome.rename(columns={accountsIncome.columns[0] : 'Number'}, inplace=True)
+        # accountsOutcome = pd.DataFrame(ExcludeNaN(total['Номер счета/карты списания'].unique()))
+        # accountsOutcome.rename(columns={accountsOutcome.columns[0] : 'Number'}, inplace=True)
+        # accounts = pd.concat([accountsIncome, accountsOutcome]).drop_duplicates()
 
-        accountsIncome = pd.DataFrame(ExcludeNaN(total['Номер счета/карты зачисления'].unique()))
-        accountsIncome.rename(columns={accountsIncome.columns[0] : 'Number'}, inplace=True)
-        accountsOutcome = pd.DataFrame(ExcludeNaN(total['Номер счета/карты списания'].unique()))
-        accountsOutcome.rename(columns={accountsOutcome.columns[0] : 'Number'}, inplace=True)
-        accounts = pd.concat([accountsIncome, accountsOutcome]).drop_duplicates()
+        accountsIncome = ExcludeNaN(total['Номер счета/карты зачисления'].unique())
+        accountsOutcome = ExcludeNaN(total['Номер счета/карты списания'].unique())
+        accounts = [j for i in [accountsIncome, accountsOutcome] for j in i]
+
         LoadAccounts(accounts)
 
 def ExcludeNaN(insertArray):
@@ -118,11 +119,17 @@ def ExcludeNaN(insertArray):
 
 def LoadAccounts(insertAccounts):    
 
-    accountsDWH = mm.GetAccount()
-    listAccount = [(account.AccountID, account.Number, account.PersonID, account.TypeAccountID, account.BankID) for account in accountsDWH]
-    listAccount = pd.DataFrame(listAccount, columns=['AccountID', 'Number','PersonID','TypeAccountID','BankID'])
+    Session = sessionmaker(mm.engine)
+    session = Session()
+
+    # accountsDWH = mm.GetAccount()
+
+    # listAccount = [(account.AccountID, account.Number, account.PersonID, account.TypeAccountID, account.BankID) for account in accountsDWH]
+    # listAccount = pd.DataFrame(listAccount, columns=['AccountID', 'Number','PersonID','TypeAccountID','BankID'])
+    # print(insertAccounts)
+    # insertAccounts = insertAccounts.merge(listAccount, left_on='Number', right_on='Number', how='left')
+
     
-    insertAccounts = insertAccounts.merge(listAccount, left_on='Number', right_on='Number', how='left')
 
     listBank = mm.GetBank()
     listBank = [(bank.BankID, bank.Name) for bank in listBank]
@@ -138,12 +145,29 @@ def LoadAccounts(insertAccounts):
     # insertAccounts['PersonID'] = np.where(pd.isna(insertAccounts['PersonID']), personID['PersonID'], insertAccounts['PersonID'])
 
     # Нужно брать только те которых нет в КХД
-    insertAccounts = insertAccounts[pd.isna(insertAccounts['AccountID'])]
+    # insertAccounts = insertAccounts[pd.isna(insertAccounts['AccountID'])]
 
-    insertAccounts['BankID'] = bankID['BankID']
-    insertAccounts['PersonID'] = personID['PersonID']
-    insertAccounts['TypeAccountID'] = 1
+    # insertAccounts['BankID'] = bankID['BankID']
+    # insertAccounts['PersonID'] = personID['PersonID']
+    # insertAccounts['TypeAccountID'] = 1
 
-    listAccount = []
+    # Loading categories 
+    listOfAccounts = []
+
+    for value in set(insertAccounts):
+        type_op = session.query(mm.Account).filter(mm.Account.Number == value).first()
+        if not type_op:
+            type_op = mm.Account(
+                Number=value,
+                BankID=int(bankID['BankID']),
+                TypeAccountID=1,
+                PersonID=int(personID['PersonID'])
+                )
+            listOfAccounts.append(type_op)
+
+    mm.SetEntites(listOfAccounts)
+
+
+    # listAccount = []
 
     # mm.SetAccount(insertAccounts)
